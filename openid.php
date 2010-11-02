@@ -289,6 +289,13 @@ class LightOpenID
                             # OpenID 2
                             $ns = preg_quote('http://specs.openid.net/auth/2.0/');
                             if(preg_match('#<Type>\s*'.$ns.'(.*?)\s*</Type>#s', $content, $type)) {
+                                //
+                                // FIX http://code.google.com/p/lightopenid/issues/detail?id=12
+                                // http://specs.openid.net/auth/2.0/return_to is used by
+                                // OpenID providers to automatically verify that a return_to URL in an OpenID request 
+                                // is an OpenID relying party endpoint for the specified realm
+                                // see: http://openid.net/specs/openid-authentication-2_0.html#rp_discovery
+                                if ($type[1] == 'return_to') continue;
                                 if ($type[1] == 'server') $this->identifier_select = true;
 
                                 preg_match('#<URI.*?>(.*)</URI>#', $content, $server);
