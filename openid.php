@@ -325,6 +325,19 @@ class LightOpenID
                 ),
             );
 
+            # enable validation of the SSL certificates
+            if ($this->verify_peer) {
+                $default['ssl'] += array(
+                    'verify_peer' => false,
+                    'capath' => '',
+                    'cafile' => ''
+                );
+                $opts['ssl'] += array(
+                    'verify_peer' => true,
+                    'capath'      => $this->capath,
+                    'cafile'      => $this->cainfo
+                );
+            }
             stream_context_get_default($opts);
 
             $url = $url . ($params ? '?' . $params : '');
