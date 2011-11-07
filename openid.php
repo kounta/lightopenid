@@ -299,20 +299,40 @@ class LightOpenID
             # but since get_headers doesn't accept $context parameter,
             # we have to change the defaults.
             $default = stream_context_get_options(stream_context_get_default());
-            stream_context_get_default(
-                array(
-                    'http' => array(
-                        'method' => 'HEAD',
-                        'header' => 'Accept: application/xrds+xml, */*',
-                        'ignore_errors' => true,
-                    ), 'ssl' => array(
-                        'CN_match' => parse_url($url, PHP_URL_HOST),
-                    ),
-                )
+
+            # PHP does not reset all options. Rather, it just sets the options
+            # available in the passed array, therefore set the defaults manually
+            $default += array(
+                'http' => array(),
+                'ssl' => array()
             );
+            $default['http'] += array(
+                'method' => 'GET',
+                'header' => '',
+                'ignore_errors' => false
+            );
+            $default['ssl'] += array(
+                'CN_match' => ''
+            );
+
+            $opts = array(
+                'http' => array(
+                    'method' => 'HEAD',
+                    'header' => 'Accept: application/xrds+xml, */*',
+                    'ignore_errors' => true,
+                ), 'ssl' => array(
+                    'CN_match' => parse_url($url, PHP_URL_HOST)
+                ),
+            );
+
+            stream_context_get_default($opts);
 
             $url = $url . ($params ? '?' . $params : '');
             $headers = get_headers ($url);
+
+            # And restore the stream context options.
+            stream_context_get_default($default);
+
             if(!$headers) {
                 return array();
             }
@@ -328,8 +348,6 @@ class LightOpenID
 
             $headers = $this->parse_header_array($headers, $update_claimed_id);
 
-            # And restore them.
-            stream_context_get_default($default);
             return $headers;
         }
 
