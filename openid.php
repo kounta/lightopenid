@@ -58,7 +58,7 @@ class LightOpenID
          , $data;
     private $identity, $claimed_id;
     protected $server, $version, $trustRoot, $aliases, $identifier_select = false
-            , $ax = false, $sreg = false, $setup_url = null, $headers = array();
+            , $ax = false, $sreg = false, $setup_url = null, $headers = array(), $http_proxy = null;
     static protected $ax_to_sreg = array(
         'namePerson/friendly'     => 'nickname',
         'contact/email'           => 'email',
@@ -153,6 +153,12 @@ class LightOpenID
 
         return !!gethostbynamel($server);
     }
+   
+    public function set_http_proxy($data){
+        
+        $this->http_proxy = $data;
+        
+    }
 
     protected function request_curl($url, $method='GET', $params=array(), $update_claimed_id)
     {
@@ -163,6 +169,12 @@ class LightOpenID
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($curl, CURLOPT_HTTPHEADER, array('Accept: application/xrds+xml, */*'));
+        
+        if(!empty($this->http_proxy['host'])){
+            curl_setopt($curl, CURLOPT_PROXY, $this->http_proxy['host']);
+            curl_setopt($curl, CURLOPT_PROXYPORT, $this->http_proxy['port']);
+            curl_setopt($curl, CURLOPT_PROXYUSERPWD, $this->http_proxy['user'].':'.$this->http_proxy['password']);            
+        }
 
         if($this->verify_peer !== null) {
             curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->verify_peer);
@@ -653,6 +665,13 @@ class LightOpenID
         } else {
             $params['openid.identity'] = $this->identity;
             $params['openid.claimed_id'] = $this->claimed_id;
+        }
+        if(!empty($this->data['openid_ns_ui'])){
+            $params += array(
+                'openid.ui.mode' => $this->data['openid_ui_mode'],
+                'openid.ui.icon' => $this->data['openid_ui_icon'],
+                'openid.ns.ui' => $this->data['openid_ns_ui']                 
+            );          
         }
 
         return $this->build_url(parse_url($this->server)
