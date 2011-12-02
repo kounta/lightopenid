@@ -73,24 +73,40 @@ class LightOpenID
 
     function __construct($host=null)
     {
+        if ($host == '*') {
+            $host = null;
+            $wild = true;
+        } elseif (($wild = strpos($host, '*.')) !== false) {
+            $host = substr_replace($host, '', $wild, $wild + 2);
+            $wild = true;
+        } else {
+            $wild = false;
+        }
+
         if (empty($host)) {
             $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
         }
 
-        $this->trustRoot = (strpos($host, '://') ? $host : 'http://' . $host);
-        if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off')
-            || (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
-            && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
-        ) {
-            $this->trustRoot = (strpos($host, '://') ? $host : 'https://' . $host);
+        if (strpos($host, '://')) {
+            $http = parse_url($host, PHP_URL_SCHEME);
+            $host = parse_url($host, PHP_URL_HOST);
+        } else {
+            if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off')
+                || (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
+                && $_SERVER['HTTP_X_FORWARDED_PROTO'] == 'https')
+            ) {
+                $http = 'https';
+            } else {
+                $http = 'http';
+            }
         }
 
-        if(($host_end = strpos($this->trustRoot, '/', 8)) !== false) {
-            $this->trustRoot = substr($this->trustRoot, 0, $host_end);
-        }
+        $wild = empty($wild) ? '' : '*.';
+
+        $this->trustRoot = $http . '://' . $wild . $host;
 
         $uri = rtrim(preg_replace('#((?<=\?)|&)openid\.[^&]+#', '', $_SERVER['REQUEST_URI']), '?');
-        $this->returnUrl = $this->trustRoot . $uri;
+        $this->returnUrl = $http . '://' . $host . $uri;
 
         $this->data = ($_SERVER['REQUEST_METHOD'] === 'POST') ? $_POST : $_GET;
 
