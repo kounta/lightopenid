@@ -71,8 +71,12 @@ class LightOpenID
         'pref/timezone'           => 'timezone',
         );
 
-    function __construct($host)
+    function __construct($host=null)
     {
+        if (empty($host)) {
+            $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : $_SERVER['SERVER_NAME'];
+        }
+
         $this->trustRoot = (strpos($host, '://') ? $host : 'http://' . $host);
         if ((!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] != 'off')
             || (isset($_SERVER['HTTP_X_FORWARDED_PROTO'])
