@@ -52,6 +52,7 @@ class LightOpenID
     public $returnUrl
          , $required = array()
          , $optional = array()
+		 , $ui = array()
          , $verify_peer = null
          , $capath = null
          , $cainfo = null
@@ -654,6 +655,10 @@ class LightOpenID
             $params['openid.identity'] = $this->identity;
             $params['openid.claimed_id'] = $this->claimed_id;
         }
+		
+		if (is_array($this->ui)&& count($this->ui) > 0) {
+			$params += $this->ui;
+		}
 
         return $this->build_url(parse_url($this->server)
                                , array('query' => http_build_query($params, '', '&')));
