@@ -52,6 +52,7 @@ class LightOpenID
     public $returnUrl
          , $required = array()
          , $optional = array()
+         , $oauth = array()
          , $verify_peer = null
          , $capath = null
          , $cainfo = null
@@ -646,6 +647,11 @@ class LightOpenID
             # in worst case we don't get anything in return.
             $params += $this->axParams() + $this->sregParams();
         }
+        if ($this->oauth && count($this->oauth) > 0) {
+            $params['openid.ns.oauth'] = 'http://specs.openid.net/extensions/oauth/1.0';
+            $params['openid.oauth.consumer'] = str_replace(array('http://','https://'), '', $this->trustRoot);
+            $params['openid.oauth.scope'] = implode(' ', $this->oauth);
+        }
 
         if ($this->identifier_select) {
             $params['openid.identity'] = $params['openid.claimed_id']
@@ -827,5 +833,32 @@ class LightOpenID
             return $this->getAxAttributes() + $this->getSregAttributes();
         }
         return $this->getSregAttributes();
+    }
+
+    /**
+     * Gets an oauth request token, if the openid+oauth hybrid protocol has been used.s
+     *
+     * In order to use the openid+oauth hybrid protocol, you need to add at
+     * least one scrope to the $openid->oauth[] array before you get the call
+     * to getAuthUrl(). E. g. $openid->oauth[] = 'https://www.googleapis.com/auth/plus.me';
+     * 
+     * Furthermore the registered consumer name must fit the openid realm. 
+     * To register an openid consumer at Google use 
+     * https://www.google.com/accounts/ManageDomains
+     * 
+     * @return string|false oauth request token on success, FALSE if no token was provided
+     */
+    function getOAuthRequestToken()
+    {
+        foreach ($this->data as $key => $val) {
+            if (substr($key, 0, strlen('openid_ns_')) == 'openid_ns_' && $val == 'http://specs.openid.net/extensions/oauth/1.0') {
+                $alias = substr($key, strlen('openid_ns_'));
+                break;
+            }
+        }
+        if (isset($alias)) {
+            return $this->data['openid_'.$alias.'_request_token'];
+        }
+        return false;
     }
 }
