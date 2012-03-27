@@ -36,7 +36,7 @@ CREATE TABLE Associations (
  * or by setting $this->dh = false;
  * However, the latter one would disable stateful mode, unless connecting via HTTPS.
  */
-require 'provider.php';
+require dirname(__FILE__) . '/../src/LightOpenIDProvider.php';
 
 mysql_connect();
 mysql_select_db('test');

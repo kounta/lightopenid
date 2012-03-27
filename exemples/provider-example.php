@@ -3,7 +3,7 @@
  * This example shows how to create a basic provider usin HTTP Authentication.
  * This is only an example. You shouldn't use it as-is in your code.
  */
-require 'provider.php';
+require dirname(__FILE__) . '/../src/LightOpenIDProvider.php';
 
 class BasicProvider extends LightOpenIDProvider
 {

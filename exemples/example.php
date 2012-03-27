@@ -1,5 +1,6 @@
 <?php
-require 'openid.php';
+require dirname(__FILE__) . '/../src/LightOpenID.php';
+
 try {
     # Change 'localhost' to your domain name.
     $openid = new LightOpenID('localhost');
