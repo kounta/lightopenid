@@ -55,6 +55,7 @@ class LightOpenID
          , $verify_peer = null
          , $capath = null
          , $cainfo = null
+         , $cnmatch= null
          , $data;
     private $identity, $claimed_id;
     protected $server, $version, $trustRoot, $aliases, $identifier_select = false
@@ -276,9 +277,7 @@ class LightOpenID
                     'method' => 'GET',
                     'header' => 'Accept: application/xrds+xml, */*',
                     'ignore_errors' => true,
-                ), 'ssl' => array(
-                    'CN_match' => parse_url($url, PHP_URL_HOST),
-                ),
+                )
             );
             $url = $url . ($params ? '?' . $params : '');
             break;
@@ -289,9 +288,7 @@ class LightOpenID
                     'header'  => 'Content-type: application/x-www-form-urlencoded',
                     'content' => $params,
                     'ignore_errors' => true,
-                ), 'ssl' => array(
-                    'CN_match' => parse_url($url, PHP_URL_HOST),
-                ),
+                )
             );
             break;
         case 'HEAD':
@@ -305,9 +302,7 @@ class LightOpenID
                         'method' => 'HEAD',
                         'header' => 'Accept: application/xrds+xml, */*',
                         'ignore_errors' => true,
-                    ), 'ssl' => array(
-                        'CN_match' => parse_url($url, PHP_URL_HOST),
-                    ),
+                    )
                 )
             );
 
@@ -334,13 +329,16 @@ class LightOpenID
         }
 
         if($this->verify_peer) {
-            $opts['ssl'] += array(
+            $opts['ssl']= array(
                 'verify_peer' => true,
                 'capath'      => $this->capath,
                 'cafile'      => $this->cainfo,
+                'CN_match'    => (empty($this->cnmatch))?
+                                    parse_url($url, PHP_URL_HOST):
+                                    $this->cnmatch
             );
         }
-
+				
         $context = stream_context_create ($opts);
         $data = file_get_contents($url, false, $context);
         # This is a hack for providers who don't support HEAD requests.
