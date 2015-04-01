@@ -1,8 +1,9 @@
 {
-    "name": "lightopenid/lightopenid",
+    "name": "kounta/lightopenid",
+    "description": "From https://gitorious.org/lightopenid/lightopenid.git",
     "type": "library",
     "keywords": ["openid"],
-    "homepage": "http://code.google.com/p/lightopenid/",
+    "homepage": "https://github.com/kounta/lightopenid",
     "license": "MIT",
     "require": {
         "php": ">=5.2.3"
